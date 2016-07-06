@@ -4,7 +4,7 @@
 #include <assert.h>
 
 class Matrix {
-	friend Matrix operator+(const Matrix& lhs, const Matrix& rhs) 
+	friend Matrix operator+(const Matrix& lhs, const Matrix& rhs)
 	{
 		Matrix result(lhs.size());
 		for (int i = 0; i < lhs.size(); ++i) {
@@ -15,7 +15,7 @@ class Matrix {
 		return result;
 	}
 
-	friend Matrix operator-(const Matrix& lhs, const Matrix& rhs) 
+	friend Matrix operator-(const Matrix& lhs, const Matrix& rhs)
 	{
 		Matrix result(lhs.size());
 		for (int i = 0; i < lhs.size(); ++i) {
@@ -28,15 +28,25 @@ class Matrix {
 
 	friend Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 	{
-		Matrix a11(lhs, 0, 0, lhs.size());
-		Matrix a12(lhs, 0, lhs.size() / 2, lhs.size());
-		Matrix a21(lhs, lhs.size() / 2, 0, lhs.size());
-		Matrix a22(lhs, lhs.size() / 2, lhs.size() / 2, lhs.size());
+		assert(lhs.size() == rhs.size());
+		int size = lhs.size();
 
-		Matrix b11(rhs, 0, 0, lhs.size());
-		Matrix b12(rhs, 0, rhs.size() / 2, lhs.size());
-		Matrix b21(rhs, rhs.size() / 2, 0, lhs.size());
-		Matrix b22(rhs, rhs.size() / 2, rhs.size() / 2, lhs.size());
+		if (lhs.size() == 1) {
+			auto ret = lhs.at(0, 0) * rhs.at(0, 0);
+			Matrix m(1);
+			m.at(0, 0) = ret;
+			return m;
+		}
+
+		Matrix a11(lhs, 0, 0, size/2);
+		Matrix a12(lhs, 0, size / 2, size/2);
+		Matrix a21(lhs, size / 2, 0, size/2);
+		Matrix a22(lhs, size / 2, size / 2, size/2);
+
+		Matrix b11(rhs, 0, 0, size/2);
+		Matrix b12(rhs, 0, size / 2, size/2);
+		Matrix b21(rhs, size / 2, 0, size/2);
+		Matrix b22(rhs, size / 2, size / 2, size/2);
 
 		Matrix s1 = b12 - b22;
 		Matrix s2 = a11 + a12;
@@ -64,13 +74,13 @@ class Matrix {
 		return Matrix(c11, c12, c21, c22);
 	}
 
-	public:
-	Matrix(int size) {
+public:
+	explicit Matrix(int size) {
 		size_ = size;
 		numbers_ = new int[size * size];
 		self_ = true;
 	}
-	Matrix(Matrix& m, int row, int col, int size) {
+	Matrix(const Matrix& m, int row, int col, int size) {
 		self_ = false;
 		numbers_ = m.numbers_ + row * m.size_ + col;
 		size_ = size;
@@ -84,6 +94,12 @@ class Matrix {
 		memcpy(numbers_ + msize, a12.numbers_, msize * sizeof(int));
 		memcpy(numbers_ + msize * 2, a21.numbers_, msize * sizeof(int));
 		memcpy(numbers_ + msize * 3, a22.numbers_, msize * sizeof(int));
+	}
+	Matrix(const Matrix& m) {
+		size_ = m.size_;
+		numbers_ = new int[size_ * size_];
+		memcpy(numbers_, m.numbers_, sizeof(int) * size_ * size_);
+		self_ = true;
 	}
 	Matrix() {
 		size_ = 0;
@@ -117,7 +133,7 @@ class Matrix {
 			}
 		}
 	}
-	private:
+private:
 	int* numbers_;
 	int size_;
 	bool self_;
@@ -135,5 +151,3 @@ int main()
 	c.output();
 	return 0;
 }
-
-

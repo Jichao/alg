@@ -6,9 +6,9 @@
 class Matrix {
 	friend Matrix operator+(const Matrix& lhs, const Matrix& rhs) 
 	{
-		Matrix result(lhs.row());
-		for (int i = 0; i < lhs.row(); ++i) {
-			for (int j = 0; j < lhs.row(); ++j) {
+		Matrix result(lhs.size());
+		for (int i = 0; i < lhs.size(); ++i) {
+			for (int j = 0; j < lhs.size(); ++j) {
 				result.at(i, j) = lhs.at(i, j) + rhs.at(i, j);
 			}
 		}
@@ -17,9 +17,9 @@ class Matrix {
 
 	friend Matrix operator-(const Matrix& lhs, const Matrix& rhs) 
 	{
-		Matrix result(lhs.row());
-		for (int i = 0; i < lhs.row(); ++i) {
-			for (int j = 0; j < lhs.row(); ++j) {
+		Matrix result(lhs.size());
+		for (int i = 0; i < lhs.size(); ++i) {
+			for (int j = 0; j < lhs.size(); ++j) {
 				result.at(i, j) = lhs.at(i, j) - rhs.at(i, j);
 			}
 		}
@@ -28,15 +28,15 @@ class Matrix {
 
 	friend Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 	{
-		Matrix a11(lhs, 0, 0);
-		Matrix a12(lhs, 0, lhs.size() / 2);
-		Matrix a21(lhs, lhs.size() / 2, 0);
-		Matrix a22(lhs, lhs.size() / 2, lhs.size() / 2);
+		Matrix a11(lhs, 0, 0, lhs.size());
+		Matrix a12(lhs, 0, lhs.size() / 2, lhs.size());
+		Matrix a21(lhs, lhs.size() / 2, 0, lhs.size());
+		Matrix a22(lhs, lhs.size() / 2, lhs.size() / 2, lhs.size());
 
-		Matrix b11(rhs, 0, 0);
-		Matrix b12(rhs, 0, rhs.size() / 2);
-		Matrix b21(rhs, rhs.size() / 2, 0);
-		Matrix b22(rhs, rhs.size() / 2, rhs.size() / 2);
+		Matrix b11(rhs, 0, 0, lhs.size());
+		Matrix b12(rhs, 0, rhs.size() / 2, lhs.size());
+		Matrix b21(rhs, rhs.size() / 2, 0, lhs.size());
+		Matrix b22(rhs, rhs.size() / 2, rhs.size() / 2, lhs.size());
 
 		Matrix s1 = b12 - b22;
 		Matrix s2 = a11 + a12;
@@ -75,7 +75,7 @@ class Matrix {
 		numbers_ = m.numbers_ + row * m.size_ + col;
 		size_ = size;
 	}
-	Matrix(Matrix& a11, Matrix& a12, Matrix& a21, Matrix& a22) {
+	Matrix(const Matrix& a11, const Matrix& a12, const Matrix& a21, const Matrix& a22) {
 		size_ = a11.size() * 2;
 		numbers_ = new int[size_ * size_];
 		self_ = true;
@@ -90,16 +90,32 @@ class Matrix {
 		numbers_ = nullptr;
 		self_ = true;
 	}
+	void get(int size) {
+		size_ = size;
+		numbers_ = new int[size * size];
+		self_ = true;
+		for (int i = 0; i < size * size; ++i) {
+			std::cin >> numbers_[i];
+		}
+	}
 	~Matrix() {
 		if (self_) {
 			delete[] numbers_;
 		}
 	}
-	int& at(int x, int y) {
+	int& at(int x, int y) const {
 		return numbers_[x * size_ + y];
 	}
 	int size() const {
 		return size_;
+	}
+	void output() {
+		for (int i = 0; i < size_ * size_; ++i) {
+			std::cout << numbers_[i] << "\t";
+			if (i % size_ == size_ - 1) {
+				std::cout << "\n";
+			}
+		}
 	}
 	private:
 	int* numbers_;
@@ -109,6 +125,15 @@ class Matrix {
 
 int main()
 {
+	int size;
+	std::cin >> size;
+	Matrix a;
+	Matrix b;
+	a.get(size);
+	b.get(size);
+	Matrix c = a * b;
+	c.output();
+	return 0;
 }
 
 

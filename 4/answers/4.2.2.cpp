@@ -38,15 +38,15 @@ class Matrix {
 			return m;
 		}
 
-		Matrix a11(lhs, 0, 0, size/2);
-		Matrix a12(lhs, 0, size / 2, size/2);
-		Matrix a21(lhs, size / 2, 0, size/2);
-		Matrix a22(lhs, size / 2, size / 2, size/2);
+		Matrix a11(&lhs, 0, 0, size/2);
+		Matrix a12(&lhs, 0, size / 2, size/2);
+		Matrix a21(&lhs, size / 2, 0, size/2);
+		Matrix a22(&lhs, size / 2, size / 2, size/2);
 
-		Matrix b11(rhs, 0, 0, size/2);
-		Matrix b12(rhs, 0, size / 2, size/2);
-		Matrix b21(rhs, size / 2, 0, size/2);
-		Matrix b22(rhs, size / 2, size / 2, size/2);
+		Matrix b11(&rhs, 0, 0, size/2);
+		Matrix b12(&rhs, 0, size / 2, size/2);
+		Matrix b21(&rhs, size / 2, 0, size/2);
+		Matrix b22(&rhs, size / 2, size / 2, size/2);
 
 		Matrix s1 = b12 - b22;
 		Matrix s2 = a11 + a12;
@@ -80,22 +80,32 @@ public:
 		numbers_ = new int[size * size];
 		self_ = true;
 	}
-	Matrix(const Matrix& m, int row, int col, int size) {
+	Matrix(const Matrix* m, int row, int col, int size) {
 		self_ = false;
-		numbers_ = m.numbers_ + row * m.size_ + col;
+		parentMatrix_ = m;
+		baseRow_ = row;
+		baseCol_ = col;
 		size_ = size;
 	}
 	Matrix(const Matrix& a11, const Matrix& a12, const Matrix& a21, const Matrix& a22) {
+		assert(a11.self_ && a12.self_ && a21.self_ && a22.self_);
 		size_ = a11.size() * 2;
 		numbers_ = new int[size_ * size_];
 		self_ = true;
-		auto msize = (a11.size_ * a11.size_);
-		memcpy(numbers_, a11.numbers_, msize * sizeof(int));
-		memcpy(numbers_ + msize, a12.numbers_, msize * sizeof(int));
-		memcpy(numbers_ + msize * 2, a21.numbers_, msize * sizeof(int));
-		memcpy(numbers_ + msize * 3, a22.numbers_, msize * sizeof(int));
+		copy(a11, 0, 0);
+		copy(a12, 0, a11.size());
+		copy(a21, a11.size(), 0);
+		copy(a22, a11.size(), a11.size());
+	}
+	void copy(const Matrix& subM, int baseRow, int baseCol) {
+		for (int i = 0; i < subM.size(); ++i) {
+			for (int j = 0; j < subM.size(); ++j) {
+				at(i + baseRow, j + baseCol) = subM.at(i, j);
+			}
+		}
 	}
 	Matrix(const Matrix& m) {
+		assert(m.self_);
 		size_ = m.size_;
 		numbers_ = new int[size_ * size_];
 		memcpy(numbers_, m.numbers_, sizeof(int) * size_ * size_);
@@ -120,20 +130,27 @@ public:
 		}
 	}
 	int& at(int x, int y) const {
-		return numbers_[x * size_ + y];
+		if (self_)
+			return numbers_[x * size_ + y];
+		else {
+			return parentMatrix_->at(baseRow_ + x, baseCol_ + y);
+		}
 	}
 	int size() const {
 		return size_;
 	}
 	void output() {
-		for (int i = 0; i < size_ * size_; ++i) {
-			std::cout << numbers_[i] << "\t";
-			if (i % size_ == size_ - 1) {
-				std::cout << "\n";
+		for (int i = 0; i < size_; ++i) {
+			for (int j = 0; j < size_; ++j) {
+				std::cout << at(i, j)<< "\t";
 			}
+			std::cout << "\n";
 		}
 	}
 private:
+	const Matrix* parentMatrix_;
+	int baseRow_;
+	int baseCol_;
 	int* numbers_;
 	int size_;
 	bool self_;
